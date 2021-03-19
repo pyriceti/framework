@@ -1,0 +1,31 @@
+{
+  "name": "com.pyriceti.framework",
+  "version": "0.1.0",
+  "displayName": "Pyriceti Framework",
+  "description": "All code, tools and resources from Pyriceti framework",
+  "unity": "2019.4",
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.cysharp.unitask",
+        "com.johannesmp.unityscenereference",
+        "com.openupm"
+      ]
+    }
+  ],
+  "dependencies": {
+    "com.cysharp.unitask": "2.2.4",
+    "com.johannesmp.unityscenereference": "1.1.1"
+  },
+  "keywords": [
+    "framework",
+    "tools"
+  ],
+  "author": {
+    "name": "Baptiste Perraud",
+    "email": "pyriceti@pm.me",
+    "url": "https://baptiste-perraud.com/"
+  }
+}
