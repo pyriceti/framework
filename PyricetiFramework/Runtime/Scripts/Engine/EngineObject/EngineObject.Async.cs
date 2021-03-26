@@ -7,7 +7,7 @@ namespace PyricetiFramework
 {
   [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
   [SuppressMessage("ReSharper", "UnusedMember.Global")]
-  public partial class EngineObject
+  public abstract partial class EngineObject
   {
     protected void waitXSecondsThen(float seconds, Action action, CancellationToken token = default) =>
       waitXSecondsThenAsync(seconds, action, token).Forget();

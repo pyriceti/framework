@@ -14,3 +14,5 @@ What is this?
 ---
 
 All code, tools and resources from the Pyriceti framework to start a Unity project on fire!
+
+**\[More coming soon!\]**

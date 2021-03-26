@@ -1,8 +1,8 @@
 {
-    "name": "com.pyriceti.framework.editor",
+    "name": "com.pyriceti.framework.customAttributesEditor",
     "rootNamespace": "",
     "references": [
-        "UnitySceneReference"
+        "GUID:d2db07028311981419aa2fee8ce76c20"
     ],
     "includePlatforms": [
         "Editor"

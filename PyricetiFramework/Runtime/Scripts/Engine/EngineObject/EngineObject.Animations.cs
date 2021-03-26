@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PyricetiFramework
 {
-  public partial class EngineObject
+  public abstract partial class EngineObject
   {
     // ReSharper disable once MemberCanBePrivate.Global
     protected static readonly AnimationCurve EaseCurve01 = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
