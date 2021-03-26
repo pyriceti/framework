@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -8,6 +9,8 @@ namespace PyricetiFramework
   [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
   public abstract partial class EngineObject : MonoBehaviour
   {
+    protected readonly List<CancellationTokenSource> aliveCtsList = new List<CancellationTokenSource>();
+    
     private CancellationTokenSource initObjCts = new CancellationTokenSource();
 
     private string stamp = null;
@@ -22,9 +25,21 @@ namespace PyricetiFramework
       initObjCts.Dispose();
       initObjCts = null;
 
+      // Cleanup remaining alive cts
+      int aliveCtsNb = aliveCtsList.Count;
+      for (var i = 0; i < aliveCtsNb; i++)
+      {
+        CancellationTokenSource cts = aliveCtsList[i];
+        cts.Cancel();
+        cts.Dispose();
+      }
+
+      aliveCtsList.Clear();
+      // ---------------------------
+
       // EngineManager.IsEngineReady may be false in UnitTests context
       if (EngineManager.IsEngineReady && !EngineManager.IsAppQuitting)
-        EngineManager.Instance.unsubscribe(this);
+        EngineManager.unsubscribe(this);
 
       destroy();
     }
@@ -63,5 +78,7 @@ namespace PyricetiFramework
 
       return showFrame ? $" <color=#A851D4>{Time.frameCount}</color> {stamp}" : stamp;
     }
+
+    protected void registerAliveCts(CancellationTokenSource cts) => aliveCtsList.Add(cts);
   }
 }

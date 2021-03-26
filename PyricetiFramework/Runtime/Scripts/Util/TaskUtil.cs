@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace PyricetiFramework
@@ -12,6 +13,21 @@ namespace PyricetiFramework
       tokenSource?.Cancel();
       tokenSource?.Dispose();
       tokenSource = new CancellationTokenSource();
+      return tokenSource.Token;
+    }
+    
+    public static CancellationToken RefreshToken(ref CancellationTokenSource tokenSource,
+      List<CancellationTokenSource> ctsList)
+    {
+      if (tokenSource != null)
+      {
+        tokenSource.Cancel();
+        tokenSource.Dispose();
+        ctsList.Remove(tokenSource);
+      }
+
+      tokenSource = new CancellationTokenSource();
+      ctsList.Add(tokenSource);
       return tokenSource.Token;
     }
   }

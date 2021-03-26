@@ -68,18 +68,22 @@ namespace PyricetiFramework
       OnAwake();
     }
 
-    protected virtual void OnAwake()
-    {
-    }
+    protected virtual void OnAwake() { }
 
     #endregion
   }
 
   public abstract class Singleton : MonoBehaviour
   {
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void initDomain()
+    {
+      Quitting = false;
+    }
+    
     #region Properties
 
-    protected static bool Quitting { get; private set; }
+    protected static bool Quitting { get; private set; } = false;
 
     #endregion
 

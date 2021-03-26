@@ -55,7 +55,9 @@ namespace PyricetiFramework
     
     private void OnApplicationQuit() => IsAppQuitting = true;
 
-    public void subscribe(EngineObject obj)
+    public static void subscribe(EngineObject obj) => Instance._subscribe(obj);
+
+    private void _subscribe(EngineObject obj)
     {
       // Array is full, needs to be resized: size is doubled
       if (engineObjsCount >= allEngineObjects.Length)
@@ -63,8 +65,10 @@ namespace PyricetiFramework
 
       allEngineObjects[engineObjsCount++] = obj;
     }
+    
+    public static void unsubscribe(EngineObject obj) => Instance._unsubscribe(obj);
 
-    public void unsubscribe(EngineObject obj)
+    private void _unsubscribe(EngineObject obj)
     {
       int idx = Array.IndexOf(allEngineObjects, obj);
 

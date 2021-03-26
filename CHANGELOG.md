@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- **\[Breaking Changes\]** Add `EngineManager.subscribe()` and `EngineManager.unsubscribe()` static methods to
+  reduce code boilerplate (replace `EngineManager.Instance.subscribe()` and `EngineManager.Instance.unsubscribe()`
+  calls).
+- Add `EngineObject.aliveCtsList` to properly cancel and dispose alive tokens upon destruction.
+- Add `TaskUtil.RefreshToken()` override with a CancellationTokenSource list param to replace old cts ref with new one.
+- Add `eUIVisibilityState` enum designed for UI elements.
+- Add `MenuPanel` class with visibility methods and logic: `show()`, `hide()`, `Visibility` and `VisibilityState`.
+- Add `MenuPanelTest` class for future tests.
+
+### Fixed
+- Fix `Singleton.Quitting` Property not being reset to false on runtime.
+
 ## [0.2.0] - 2021-03-26
 ### Added
 - Default example scenes `_Engine` and `_Startup` to get started.

@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace PyricetiFramework
 {
+  [SuppressMessage("ReSharper", "UnusedMember.Global")]
   public abstract partial class EngineObject
   {
     // ReSharper disable once MemberCanBePrivate.Global
@@ -16,11 +17,13 @@ namespace PyricetiFramework
 
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     [SuppressMessage("ReSharper", "ConvertToConstant.Global")]
+    [Serializable]
     protected sealed class AnimationParams
     {
       public AnimationCurve curve = EaseCurve01;
       public float speed = 1f;
       public Func<bool> stopPredicate = null;
+      [Range(0f, 1f)] public float startingT = 0f;
     }
 
     protected static async UniTask animate(Action<float> anim, AnimationParams animParams = null,
@@ -33,7 +36,7 @@ namespace PyricetiFramework
         animParams = new AnimationParams();
 
       AnimationCurve curve = animParams.curve;
-      var t = 0f;
+      float t = animParams.startingT;
       while (t <= 1)
       {
         // Evaluate stopPredicate if any
