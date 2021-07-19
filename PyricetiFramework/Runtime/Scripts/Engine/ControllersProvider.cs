@@ -27,6 +27,12 @@ namespace PyricetiFramework
       _controllers.Add(controller.GetType(), controller);
     }
 
-    public static T getController<T>() where T : EngineController => (T) _controllers[typeof(T)];
+    public static T getController<T>() where T : EngineController
+    {
+      if (_controllers.TryGetValue(typeof(T), out EngineController res))
+        return (T) res;
+
+      return null;
+    }
   }
 }

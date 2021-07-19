@@ -46,8 +46,13 @@ namespace PyricetiFramework
 
     private static async UniTaskVoid waitThenAsync(Func<bool> predicate, Action action, CancellationToken token)
     {
-      await UniTask.WaitUntil(predicate, cancellationToken: token);
-      action.Invoke();
+      if (predicate.Invoke())
+        action.Invoke();
+      else
+      {
+        await UniTask.WaitUntil(predicate, cancellationToken: token);
+        action.Invoke();  
+      }
     }
   }
 }

@@ -7,17 +7,34 @@ using UnityEngine;
 namespace PyricetiFramework
 {
   [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
+  [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
   public abstract partial class EngineObject : MonoBehaviour
   {
     protected readonly List<CancellationTokenSource> aliveCtsList = new List<CancellationTokenSource>();
     
     private CancellationTokenSource initObjCts = new CancellationTokenSource();
 
+    private bool isEngineSubscriber = false;
     private string stamp = null;
+    
+    /// <summary>
+    /// isReady is set to true when setupLate is called
+    /// </summary>
+    protected bool isReady = false;
+
+    // ReSharper disable once FieldCanBeMadeReadOnly.Global
+    // ReSharper disable once ConvertToConstant.Global
+    protected bool forceInitIfDisabledOnBuild = false;
 
     private void Awake() => build();
 
     private void Start() => waitThen(() => EngineManager.IsEngineReady, () => initObj().Forget());
+
+    private void OnDisable()
+    {
+      if (!isReady && forceInitIfDisabledOnBuild)
+        waitThen(() => EngineManager.IsEngineReady, () => waitOneFrameThen(() => initObj().Forget()));
+    }
 
     private void OnDestroy()
     {
@@ -37,8 +54,10 @@ namespace PyricetiFramework
       aliveCtsList.Clear();
       // ---------------------------
 
+
+      // If the app is not closing, make sure to unsubscribe object upon destruction
       // EngineManager.IsEngineReady may be false in UnitTests context
-      if (EngineManager.IsEngineReady && !EngineManager.IsAppQuitting)
+      if (EngineManager.IsEngineReady && !EngineManager.IsAppQuitting && isEngineSubscriber)
         EngineManager.unsubscribe(this);
 
       destroy();
@@ -59,7 +78,7 @@ namespace PyricetiFramework
 
     protected virtual void setup() { }
 
-    protected virtual void setupLate() { }
+    protected virtual void setupLate() => isReady = true;
 
     public virtual void updateEngine() { }
 
@@ -71,7 +90,7 @@ namespace PyricetiFramework
     /// </summary>
     /// <param name="showFrame"></param>
     /// <returns></returns>
-    protected virtual string getStamp(bool showFrame = false)
+    public virtual string getStamp(bool showFrame = false)
     {
       if (stamp == null)
         stamp = $" <color=#14E3C6>{GetType().Name}</color> | <b>{name}</b> |";
@@ -80,5 +99,7 @@ namespace PyricetiFramework
     }
 
     protected void registerAliveCts(CancellationTokenSource cts) => aliveCtsList.Add(cts);
+
+    public void setIsEngineSubscriber(bool val = true) => isEngineSubscriber = val;
   }
 }

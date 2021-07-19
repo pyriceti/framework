@@ -55,7 +55,11 @@ namespace PyricetiFramework
     
     private void OnApplicationQuit() => IsAppQuitting = true;
 
-    public static void subscribe(EngineObject obj) => Instance._subscribe(obj);
+    public static void subscribe(EngineObject obj)
+    {
+      Instance._subscribe(obj);
+      obj.setIsEngineSubscriber();
+    }
 
     private void _subscribe(EngineObject obj)
     {
