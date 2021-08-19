@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace PyricetiFramework.Editor
 {
-  [CreateAssetMenu(fileName = "StartupData", menuName = ProjectData.ProjectName + "/StartupData", order = 1)]
+  [CreateAssetMenu(fileName = "StartupData", menuName = "PyricetiFramework/StartupData", order = 1)]
   public class StartupData : ScriptableObject
   {
     [SerializeField] private SceneReference startupScene = default;

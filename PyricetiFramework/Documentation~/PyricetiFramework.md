@@ -26,12 +26,14 @@ Pyriceti framework has two internal dependencies, [JohannesMP's SceneReference p
 and [Cysharp's UniTask package](https://github.com/Cysharp/UniTask). These should be automatically installed
 when this package is installed with UPM.
 
-This Pyriceti framework version 0.2.0 is compatible with the following versions of the Unity Editor:
+This Pyriceti framework version 0.3.0a1 is compatible with the following versions of the Unity Editor:
 
-* 2019.4.18f1 and later
+* 2020.3.14f1 and later
 
 ## Revision History
 
 | **Date:** | **Reason:** |
 |:---|:---|
+| August 19, 2021 | Some generic classes, adopt alpha versioning. |
+| March 26, 2021 | Engine objects improvements. |
 | March 19, 2021 | Initial version. |

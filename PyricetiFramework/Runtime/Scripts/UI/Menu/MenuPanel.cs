@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -25,14 +26,42 @@ namespace PyricetiFramework
     private CanvasGroup canvasGroup;
 
     private CancellationTokenSource fadeCts = new CancellationTokenSource();
+    
+    private eUIVisibilityState visibilityState;
+
+    public eUIVisibilityState VisibilityState
+    {
+      get => visibilityState;
+      private set
+      {
+        visibilityState = value;
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+        switch (visibilityState)
+        {
+          case eUIVisibilityState.visible:
+            PanelShownEvt?.Invoke();
+            break;
+          case eUIVisibilityState.hidden:
+            PanelHiddenEvt?.Invoke();
+            break;
+        }
+      }
+    }
+
+    protected virtual AnimationParams fadeAnimParams { get; } = new AnimationParams();
 
     /// <summary>
     /// True when panel is at least partially visible (set early during fade operations).
     /// It allows "loose" checks. For "strict" visibility checks, use <see cref="VisibilityState"/>.
     /// </summary>
     public bool IsVisible { get; private set; }
-
-    public eUIVisibilityState VisibilityState { get; private set; }
+    
+    // ReSharper disable EventNeverSubscribedTo.Global
+    public event Action BeforePanelShownEvt;
+    public event Action PanelShownEvt;
+    public event Action BeforePanelHiddenEvt;
+    public event Action PanelHiddenEvt;
+    // ReSharper restore EventNeverSubscribedTo.Global
 
     protected override void build()
     {
@@ -45,14 +74,24 @@ namespace PyricetiFramework
 
       if (disableOnAwake)
         disableCanvasGroup(true);
+
+      VisibilityState = canvasGroup.alpha > 0 ? eUIVisibilityState.visible : eUIVisibilityState.hidden;
+      IsVisible = VisibilityState != eUIVisibilityState.hidden;
     }
 
+    protected virtual void preShow() { }
+
+    protected virtual void preHide() { }
+    
     // TODO: add warning logs when isVisible is true, with custom preprocessor PYRICETI_FRAMEWORK_DEBUG directive
-    public virtual void show(bool fade = false)
+    public void show(bool fade = false)
     {
       if (IsVisible)
         return;
 
+      preShow();
+      BeforePanelShownEvt?.Invoke();
+      
       if (fade)
       {
         fadeIn().Forget();
@@ -64,10 +103,13 @@ namespace PyricetiFramework
       VisibilityState = eUIVisibilityState.visible;
     }
 
-    public virtual void hide(bool fade = false)
+    public void hide(bool fade = false)
     {
       if (!IsVisible)
         return;
+
+      preHide();
+      BeforePanelHiddenEvt?.Invoke();
 
       if (fade)
       {
@@ -97,7 +139,8 @@ namespace PyricetiFramework
       float originA = canvasGroup.alpha;
 
       await animate(y => canvasGroup.alpha = (1f - y) * originA + y,
-        token: TaskUtil.RefreshToken(ref fadeCts, aliveCtsList));
+        fadeAnimParams,
+        TaskUtil.RefreshToken(ref fadeCts, aliveCtsList));
 
       enableCanvasGroup();
       VisibilityState = eUIVisibilityState.visible;
@@ -119,7 +162,8 @@ namespace PyricetiFramework
       float originA = canvasGroup.alpha;
 
       await animate(y => canvasGroup.alpha = (1f - y) * originA,
-        token: TaskUtil.RefreshToken(ref fadeCts, aliveCtsList));
+        fadeAnimParams,
+        TaskUtil.RefreshToken(ref fadeCts, aliveCtsList));
 
       disableCanvasGroup();
       VisibilityState = eUIVisibilityState.hidden;
@@ -149,6 +193,36 @@ namespace PyricetiFramework
 
       canvasGroup.interactable = false;
       canvasGroup.blocksRaycasts = false;
+    }
+
+    [ContextMenu("Show")]
+    private void cm_show()
+    {
+      canvasGroup = GetComponent<CanvasGroup>();
+      Assert.IsNotNull(canvasGroup);
+      enableCanvasGroup(true);
+    }
+
+    [ContextMenu("Hide")]
+    private void cm_hide()
+    {
+      canvasGroup = GetComponent<CanvasGroup>();
+      Assert.IsNotNull(canvasGroup);
+      disableCanvasGroup(true);
+    }
+  }
+  
+  public class MenuPanel<TController> : MenuPanel where TController : EngineController
+  {
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected TController controller;
+
+    protected override void setupEarly()
+    {
+      base.setupEarly();
+
+      controller = ControllersProvider.getController<TController>();
+      Assert.IsNotNull(controller);
     }
   }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace PyricetiFramework
 {
@@ -11,12 +12,12 @@ namespace PyricetiFramework
   public abstract partial class EngineObject : MonoBehaviour
   {
     protected readonly List<CancellationTokenSource> aliveCtsList = new List<CancellationTokenSource>();
-    
+
     private CancellationTokenSource initObjCts = new CancellationTokenSource();
 
     private bool isEngineSubscriber = false;
     private string stamp = null;
-    
+
     /// <summary>
     /// isReady is set to true when setupLate is called
     /// </summary>
@@ -47,7 +48,8 @@ namespace PyricetiFramework
       for (var i = 0; i < aliveCtsNb; i++)
       {
         CancellationTokenSource cts = aliveCtsList[i];
-        cts.Cancel();
+        if (!cts.IsCancellationRequested) 
+          cts.Cancel();
         cts.Dispose();
       }
 
@@ -101,5 +103,19 @@ namespace PyricetiFramework
     protected void registerAliveCts(CancellationTokenSource cts) => aliveCtsList.Add(cts);
 
     public void setIsEngineSubscriber(bool val = true) => isEngineSubscriber = val;
+  }
+
+  public abstract class EngineObject<TController> : EngineObject where TController : EngineController
+  {
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected TController controller;
+
+    protected override void setupEarly()
+    {
+      base.setupEarly();
+
+      controller = ControllersProvider.getController<TController>();
+      Assert.IsNotNull(controller);
+    }
   }
 }

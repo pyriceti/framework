@@ -22,6 +22,7 @@ namespace PyricetiFramework
     {
       public AnimationCurve curve = EaseCurve01;
       public float speed = 1f;
+      public float? duration = null;
       public Func<bool> stopPredicate = null;
       [Range(0f, 1f)] public float startingT = 0f;
     }
@@ -46,7 +47,10 @@ namespace PyricetiFramework
         float y = curve.Evaluate(t);
         anim.Invoke(y, t);
 
-        t += Time.deltaTime * animParams.speed;
+        if (animParams.duration.HasValue)
+          t += Time.deltaTime * (1f / animParams.duration.Value);
+        else 
+          t += Time.deltaTime * animParams.speed;
         await UniTask.NextFrame(token);
       }
 
