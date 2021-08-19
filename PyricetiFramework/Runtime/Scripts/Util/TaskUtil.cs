@@ -16,6 +16,12 @@ namespace PyricetiFramework
       return tokenSource.Token;
     }
     
+    /// <summary>
+    /// Allow to automatically add/remove the cts to/from the provided cts list
+    /// </summary>
+    /// <param name="tokenSource"></param>
+    /// <param name="ctsList"></param>
+    /// <returns></returns>
     public static CancellationToken RefreshToken(ref CancellationTokenSource tokenSource,
       List<CancellationTokenSource> ctsList)
     {
