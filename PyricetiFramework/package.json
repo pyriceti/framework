@@ -1,6 +1,6 @@
 {
   "name": "com.pyriceti.framework",
-  "version": "0.3.0a1",
+  "version": "0.3.0-alpha.1",
   "displayName": "Pyriceti Framework",
   "description": "All code, tools and resources from Pyriceti framework",
   "unity": "2020.3",
