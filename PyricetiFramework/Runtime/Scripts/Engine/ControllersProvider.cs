@@ -9,7 +9,7 @@ namespace PyricetiFramework
   public static class ControllersProvider
   {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void initDomain()
+    private static void InitDomain()
     {
       _controllers = null;
     }
@@ -17,17 +17,17 @@ namespace PyricetiFramework
     private static Dictionary<Type, EngineController> _controllers;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void init()
+    private static void Init()
     {
       _controllers = new Dictionary<Type, EngineController>();
     }
     
-    public static void registerController(EngineController controller)
+    public static void RegisterController(EngineController controller)
     {
       _controllers.Add(controller.GetType(), controller);
     }
 
-    public static T getController<T>() where T : EngineController
+    public static T GetController<T>() where T : EngineController
     {
       if (_controllers.TryGetValue(typeof(T), out EngineController res))
         return (T) res;

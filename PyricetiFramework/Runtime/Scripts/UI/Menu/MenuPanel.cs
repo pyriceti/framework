@@ -26,36 +26,36 @@ namespace PyricetiFramework
     private CanvasGroup canvasGroup;
 
     private CancellationTokenSource fadeCts = new CancellationTokenSource();
-    
+
     private eUIVisibilityState visibilityState;
 
     public eUIVisibilityState VisibilityState
     {
-      get => visibilityState;
+      get => this.visibilityState;
       private set
       {
-        visibilityState = value;
+        this.visibilityState = value;
         // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-        switch (visibilityState)
+        switch (this.visibilityState)
         {
           case eUIVisibilityState.visible:
-            PanelShownEvt?.Invoke();
+            this.PanelShownEvt?.Invoke();
             break;
           case eUIVisibilityState.hidden:
-            PanelHiddenEvt?.Invoke();
+            this.PanelHiddenEvt?.Invoke();
             break;
         }
       }
     }
 
-    protected virtual AnimationParams fadeAnimParams { get; } = new AnimationParams();
+    protected virtual AnimationParams FadeAnimParams => DefaultAnimationParams;
 
     /// <summary>
     /// True when panel is at least partially visible (set early during fade operations).
     /// It allows "loose" checks. For "strict" visibility checks, use <see cref="VisibilityState"/>.
     /// </summary>
     public bool IsVisible { get; private set; }
-    
+
     // ReSharper disable EventNeverSubscribedTo.Global
     public event Action BeforePanelShownEvt;
     public event Action PanelShownEvt;
@@ -63,166 +63,189 @@ namespace PyricetiFramework
     public event Action PanelHiddenEvt;
     // ReSharper restore EventNeverSubscribedTo.Global
 
-    protected override void build()
+    protected override void Build()
     {
-      base.build();
+      base.Build();
 
-      registerAliveCts(fadeCts);
+      this.RegisterAliveCts(this.fadeCts);
 
-      canvasGroup = GetComponent<CanvasGroup>();
-      Assert.IsNotNull(canvasGroup);
+      this.canvasGroup = this.GetComponent<CanvasGroup>();
+      Assert.IsNotNull(this.canvasGroup);
 
-      if (disableOnAwake)
-        disableCanvasGroup(true);
+      if (this.disableOnAwake) this.DisableCanvasGroup(true);
 
-      VisibilityState = canvasGroup.alpha > 0 ? eUIVisibilityState.visible : eUIVisibilityState.hidden;
-      IsVisible = VisibilityState != eUIVisibilityState.hidden;
+      this.VisibilityState = this.canvasGroup.alpha > 0 ? eUIVisibilityState.visible : eUIVisibilityState.hidden;
+      this.IsVisible = this.VisibilityState != eUIVisibilityState.hidden;
     }
 
-    protected virtual void preShow() { }
+    protected virtual void PreShow() { }
 
-    protected virtual void preHide() { }
-    
+    protected virtual void PostShow() { }
+
+    protected virtual void PreHide() { }
+
+    protected virtual void PostHide() { }
+
+    public void Show(bool fade = false) => this.Show(this.FadeAnimParams, fade);
+
     // TODO: add warning logs when isVisible is true, with custom preprocessor PYRICETI_FRAMEWORK_DEBUG directive
-    public void show(bool fade = false)
+    public void Show(AnimationParams animationParams, bool fade = false)
     {
-      if (IsVisible)
+      if (this.IsVisible)
         return;
 
-      preShow();
-      BeforePanelShownEvt?.Invoke();
-      
+      this.PreShow();
+      this.BeforePanelShownEvt?.Invoke();
+
       if (fade)
       {
-        fadeIn().Forget();
+        this.FadeIn(animationParams, this.PostShow).Forget();
         return;
       }
 
-      IsVisible = true;
-      enableCanvasGroup(true);
-      VisibilityState = eUIVisibilityState.visible;
+      this.IsVisible = true;
+      this.EnableCanvasGroup(true);
+      this.VisibilityState = eUIVisibilityState.visible;
+      this.PostShow();
     }
 
-    public void hide(bool fade = false)
+    public void Hide(bool fade = false) => this.Hide(this.FadeAnimParams, fade);
+
+    public void Hide(AnimationParams animationParams, bool fade = false)
     {
-      if (!IsVisible)
+      if (!this.IsVisible)
         return;
 
-      preHide();
-      BeforePanelHiddenEvt?.Invoke();
+      this.PreHide();
+      this.BeforePanelHiddenEvt?.Invoke();
 
       if (fade)
       {
-        fadeOut().Forget();
+        this.FadeOut(animationParams, this.PostHide).Forget();
         return;
       }
-      
-      IsVisible = false;
-      disableCanvasGroup(true);
-      VisibilityState = eUIVisibilityState.hidden;
+
+      this.IsVisible = false;
+      this.DisableCanvasGroup(true);
+      this.VisibilityState = eUIVisibilityState.hidden;
+      this.PostHide();
     }
 
 
     // ReSharper disable Unity.PerformanceAnalysis
-    private async UniTaskVoid fadeIn()
+    private async UniTaskVoid FadeIn(Action onFadedIn = null)
     {
-      if (!allowFadeInterruption &&
-        (VisibilityState == eUIVisibilityState.fadingIn || VisibilityState == eUIVisibilityState.fadingOut))
-      {
-        Debug.LogWarning($"{getStamp()} allowFadeInterruption is <b>false</b>, aborting fadeIn");
-        return;
-      }
-      
-      IsVisible = true;
-      VisibilityState = eUIVisibilityState.fadingIn;
-
-      float originA = canvasGroup.alpha;
-
-      await animate(y => canvasGroup.alpha = (1f - y) * originA + y,
-        fadeAnimParams,
-        TaskUtil.RefreshToken(ref fadeCts, aliveCtsList));
-
-      enableCanvasGroup();
-      VisibilityState = eUIVisibilityState.visible;
+      await this.FadeIn(this.FadeAnimParams, onFadedIn);
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
-    private async UniTaskVoid fadeOut()
+    private async UniTask FadeIn(AnimationParams animationParams, Action onFadedIn = null)
     {
-      if (!allowFadeInterruption &&
-        (VisibilityState == eUIVisibilityState.fadingIn || VisibilityState == eUIVisibilityState.fadingOut))
+      if (!this.allowFadeInterruption &&
+          this.VisibilityState is eUIVisibilityState.fadingIn or eUIVisibilityState.fadingOut)
       {
-        Debug.LogWarning($"{getStamp()} allowFadeInterruption is <b>false</b>, aborting fadeOut");
+        Debug.LogWarning($"{this.GetStamp()} allowFadeInterruption is <b>false</b>, aborting fadeIn");
         return;
       }
-      
-      IsVisible = false;
-      VisibilityState = eUIVisibilityState.fadingOut;
 
-      float originA = canvasGroup.alpha;
+      this.IsVisible = true;
+      this.VisibilityState = eUIVisibilityState.fadingIn;
 
-      await animate(y => canvasGroup.alpha = (1f - y) * originA,
-        fadeAnimParams,
-        TaskUtil.RefreshToken(ref fadeCts, aliveCtsList));
+      float originA = this.canvasGroup.alpha;
 
-      disableCanvasGroup();
-      VisibilityState = eUIVisibilityState.hidden;
+      await Animate(y => this.canvasGroup.alpha = (1f - y) * originA + y, animationParams,
+        TaskUtil.RefreshToken(ref this.fadeCts, this.aliveCtsList));
+
+      this.EnableCanvasGroup();
+      this.VisibilityState = eUIVisibilityState.visible;
+
+      onFadedIn?.Invoke();
     }
 
-    protected virtual void enableCanvasGroup(bool setAlpha = false)
+    // ReSharper disable Unity.PerformanceAnalysis
+    private async UniTaskVoid FadeOut(Action onFadedOut = null)
+    {
+      await this.FadeOut(this.FadeAnimParams, onFadedOut);
+    }
+
+    // ReSharper disable Unity.PerformanceAnalysis
+    private async UniTask FadeOut(AnimationParams animationParams, Action onFadedOut = null)
+    {
+      if (!this.allowFadeInterruption &&
+        this.VisibilityState is eUIVisibilityState.fadingIn or eUIVisibilityState.fadingOut)
+      {
+        Debug.LogWarning($"{this.GetStamp()} allowFadeInterruption is <b>false</b>, aborting fadeOut");
+        return;
+      }
+
+      this.IsVisible = false;
+      this.VisibilityState = eUIVisibilityState.fadingOut;
+
+      float originA = this.canvasGroup.alpha;
+
+      await Animate(y => this.canvasGroup.alpha = (1f - y) * originA, animationParams,
+        TaskUtil.RefreshToken(ref this.fadeCts, this.aliveCtsList));
+
+      this.DisableCanvasGroup();
+      this.VisibilityState = eUIVisibilityState.hidden;
+
+      onFadedOut?.Invoke();
+    }
+
+    protected virtual void EnableCanvasGroup(bool setAlpha = false)
     {
       if (setAlpha)
       {
-        canvasGroup.alpha = 1f;
-        IsVisible = true;
-        VisibilityState = eUIVisibilityState.visible;
+        this.canvasGroup.alpha = 1f;
+        this.IsVisible = true;
+        this.VisibilityState = eUIVisibilityState.visible;
       }
 
-      canvasGroup.interactable = true;
-      canvasGroup.blocksRaycasts = true;
+      this.canvasGroup.interactable = true;
+      this.canvasGroup.blocksRaycasts = true;
     }
 
-    protected virtual void disableCanvasGroup(bool setAlpha = false)
+    protected virtual void DisableCanvasGroup(bool setAlpha = false)
     {
       if (setAlpha)
       {
-        canvasGroup.alpha = 0f;
-        IsVisible = false;
-        VisibilityState = eUIVisibilityState.hidden;
+        this.canvasGroup.alpha = 0f;
+        this.IsVisible = false;
+        this.VisibilityState = eUIVisibilityState.hidden;
       }
 
-      canvasGroup.interactable = false;
-      canvasGroup.blocksRaycasts = false;
+      this.canvasGroup.interactable = false;
+      this.canvasGroup.blocksRaycasts = false;
     }
 
     [ContextMenu("Show")]
-    private void cm_show()
+    private void cm_Show()
     {
-      canvasGroup = GetComponent<CanvasGroup>();
-      Assert.IsNotNull(canvasGroup);
-      enableCanvasGroup(true);
+      this.canvasGroup = this.GetComponent<CanvasGroup>();
+      Assert.IsNotNull(this.canvasGroup);
+      this.EnableCanvasGroup(true);
     }
 
     [ContextMenu("Hide")]
-    private void cm_hide()
+    private void cm_Hide()
     {
-      canvasGroup = GetComponent<CanvasGroup>();
-      Assert.IsNotNull(canvasGroup);
-      disableCanvasGroup(true);
+      this.canvasGroup = this.GetComponent<CanvasGroup>();
+      Assert.IsNotNull(this.canvasGroup);
+      this.DisableCanvasGroup(true);
     }
   }
-  
+
   public class MenuPanel<TController> : MenuPanel where TController : EngineController
   {
     // ReSharper disable once MemberCanBePrivate.Global
     protected TController controller;
 
-    protected override void setupEarly()
+    protected override void SetupEarly()
     {
-      base.setupEarly();
+      base.SetupEarly();
 
-      controller = ControllersProvider.getController<TController>();
-      Assert.IsNotNull(controller);
+      this.controller = ControllersProvider.GetController<TController>();
+      Assert.IsNotNull(this.controller);
     }
   }
 }

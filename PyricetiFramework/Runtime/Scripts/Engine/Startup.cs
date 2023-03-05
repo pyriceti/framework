@@ -8,7 +8,7 @@ namespace PyricetiFramework
   public class Startup : MonoBehaviour
   {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void initDomain()
+    private static void InitDomain()
     {
       mainScenes = null;
     }
@@ -21,13 +21,13 @@ namespace PyricetiFramework
 
     private void Awake() => mainScenes = new ReadOnlyCollection<SceneReference>(scenes);
 
-    private void Start() => loadEngineSceneThenUnloadStartup().Forget();
+    private void Start() => LoadEngineSceneThenUnloadStartup().Forget();
 
-    private async UniTaskVoid loadEngineSceneThenUnloadStartup()
+    private async UniTaskVoid LoadEngineSceneThenUnloadStartup()
     {
-      ScenesManager.loadEngineScene(); // Load engine scene here (engine bootstrap entry point)
+      ScenesManager.LoadEngineScene(); // Load engine scene here (engine bootstrap entry point)
       await UniTask.WaitUntil(() => EngineManager.IsEngineReady, cancellationToken: loadEngineSceneCts.Token);
-      ScenesManager.unloadScene(gameObject.scene);
+      ScenesManager.UnloadScene(gameObject.scene);
     }
 
     private void OnDestroy()

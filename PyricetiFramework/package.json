@@ -17,7 +17,8 @@
   ],
   "dependencies": {
     "com.cysharp.unitask": "2.2.5",
-    "com.johannesmp.unityscenereference": "1.1.1"
+    "com.johannesmp.unityscenereference": "1.1.1",
+    "com.unity.addressables": "1.16.19"
   },
   "keywords": [
     "framework",

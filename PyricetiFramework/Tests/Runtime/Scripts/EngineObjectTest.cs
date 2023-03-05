@@ -4,34 +4,34 @@ namespace PyricetiFramework.Tests.Runtime
 {
   public class EngineObjectTest : EngineObject
   {
-    protected override void build()
+    protected override void Build()
     {
-      base.build();
-      Debug.Log($"{getStamp(true)} build");
+      base.Build();
+      Debug.Log($"{GetStamp(true)} build");
     }
 
-    protected override void setupEarly()
+    protected override void SetupEarly()
     {
-      base.setupEarly();
-      Debug.Log($"{getStamp(true)} setupEarly");
+      base.SetupEarly();
+      Debug.Log($"{GetStamp(true)} setupEarly");
     }
     
-    protected override void setup()
+    protected override void Setup()
     {
-      base.setup();
-      Debug.Log($"{getStamp(true)} setup");
+      base.Setup();
+      Debug.Log($"{GetStamp(true)} setup");
     }
     
-    protected override void setupLate()
+    protected override void SetupLate()
     {
-      base.setupLate();
-      Debug.Log($"{getStamp(true)} setupLate");
+      base.SetupLate();
+      Debug.Log($"{GetStamp(true)} setupLate");
     }
     
-    protected override void destroy()
+    protected override void Destroy()
     {
-      base.setupLate();
-      Debug.Log($"{getStamp(true)} destroy");
+      base.SetupLate();
+      Debug.Log($"{GetStamp(true)} destroy");
     }
   }
 }

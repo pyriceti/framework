@@ -1,4 +1,5 @@
 using UnityEngine;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace PyricetiFramework
 {

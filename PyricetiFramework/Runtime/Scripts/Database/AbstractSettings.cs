@@ -7,10 +7,11 @@ using UnityEngine;
 
 namespace PyricetiFramework
 {
-  public abstract class AbstractSettings : ScriptableObject
+  public abstract class AbstractSettings : EngineScriptableObject
   {
 #if UNITY_EDITOR
-    private static string SettingsLabel => $"{ProjectData.ProjectName}Settings";
+    private static string SettingsLabel =>
+      $"{EngineConfigScriptableObject.GetActiveInstance<ProjectData>()?.ProjectName ?? ProjectData.DefaultProjectName}Settings";
 
     private void OnEnable()
     {
@@ -25,9 +26,9 @@ namespace PyricetiFramework
     }
 
     [ContextMenu("Reset to non debug settings")]
-    private void resetToNonDebugSettings()
+    private void ResetToNonDebugSettings()
     {
-      if (!name.CustomEndsWith("Debug"))
+      if (!this.name.CustomEndsWith("Debug"))
       {
         Debug.LogWarning("Cannot reset none debug settings, aborting");
         return;
@@ -35,7 +36,7 @@ namespace PyricetiFramework
 
       string debugSettingsPath = AssetDatabase.GetAssetPath(this);
       int suffixLength = "Debug.asset".Length;
-      string settingsPath = debugSettingsPath.Substring(0, debugSettingsPath.Length - suffixLength) + ".asset";
+      string settingsPath = debugSettingsPath[..^suffixLength] + ".asset";
 
       var settings = AssetDatabase.LoadAssetAtPath<AbstractSettings>(settingsPath);
       if (settings == null)
@@ -44,7 +45,7 @@ namespace PyricetiFramework
         return;
       }
 
-      Debug.Log($"Copying {settings.name} values to {name}");
+      Debug.Log($"Copying {settings.name} values to {this.name}");
 
       EditorUtility.CopySerialized(settings, this);
       EditorUtility.SetDirty(this);

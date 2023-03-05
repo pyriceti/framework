@@ -10,7 +10,7 @@ namespace PyricetiFramework
   public class EngineManager : Singleton<EngineManager>
   {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void initDomain()
+    private static void InitDomain()
     {
       IsEngineReady = false;
       IsAppQuitting = false;
@@ -36,11 +36,11 @@ namespace PyricetiFramework
       allEngineObjects = new EngineObject[startEngineObjsArrSize];
     }
 
-    private void Start() => bootstrap(Startup.mainScenes).Forget();
+    private void Start() => Bootstrap(Startup.mainScenes).Forget();
 
-    private static async UniTaskVoid bootstrap(IEnumerable<SceneReference> scenes)
+    private static async UniTaskVoid Bootstrap(IEnumerable<SceneReference> scenes)
     {
-      await ScenesManager.loadScenesAsync(scenes);
+      await ScenesManager.LoadScenesAsync(scenes);
       IsEngineReady = true;
     }
 
@@ -49,16 +49,16 @@ namespace PyricetiFramework
       // ReSharper disable once ForCanBeConvertedToForeach
       for (var i = 0; i < engineObjsCount; i++)
       {
-        allEngineObjects[i].updateEngine();
+        allEngineObjects[i].UpdateEngine();
       }
     }
     
     private void OnApplicationQuit() => IsAppQuitting = true;
 
-    public static void subscribe(EngineObject obj)
+    public static void Subscribe(EngineObject obj)
     {
       Instance._subscribe(obj);
-      obj.setIsEngineSubscriber();
+      obj.SetIsEngineSubscriber();
     }
 
     private void _subscribe(EngineObject obj)
@@ -70,7 +70,7 @@ namespace PyricetiFramework
       allEngineObjects[engineObjsCount++] = obj;
     }
     
-    public static void unsubscribe(EngineObject obj) => Instance._unsubscribe(obj);
+    public static void Unsubscribe(EngineObject obj) => Instance._unsubscribe(obj);
 
     private void _unsubscribe(EngineObject obj)
     {

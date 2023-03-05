@@ -1,9 +1,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+#if UNITY_EDITOR
+using System.Reflection;
+#endif
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEngine.Assertions;
+#endif
 
 namespace PyricetiFramework
 {
@@ -27,14 +32,14 @@ namespace PyricetiFramework
     // ReSharper disable once ConvertToConstant.Global
     protected bool forceInitIfDisabledOnBuild = false;
 
-    private void Awake() => build();
+    private void Awake() => Build();
 
-    private void Start() => waitThen(() => EngineManager.IsEngineReady, () => initObj().Forget());
+    private void Start() => WaitThen(() => EngineManager.IsEngineReady, () => InitObj().Forget());
 
     private void OnDisable()
     {
       if (!isReady && forceInitIfDisabledOnBuild)
-        waitThen(() => EngineManager.IsEngineReady, () => waitOneFrameThen(() => initObj().Forget()));
+        WaitThen(() => EngineManager.IsEngineReady, () => waitOneFrameThen(() => InitObj().Forget()));
     }
 
     private void OnDestroy()
@@ -60,31 +65,52 @@ namespace PyricetiFramework
       // If the app is not closing, make sure to unsubscribe object upon destruction
       // EngineManager.IsEngineReady may be false in UnitTests context
       if (EngineManager.IsEngineReady && !EngineManager.IsAppQuitting && isEngineSubscriber)
-        EngineManager.unsubscribe(this);
+        EngineManager.Unsubscribe(this);
 
-      destroy();
+      Destroy();
     }
 
-    private async UniTaskVoid initObj()
+    private async UniTaskVoid InitObj()
     {
-      setupEarly();
+      SetupEarly();
       await UniTask.NextFrame(initObjCts.Token);
-      setup();
+      Setup();
       await UniTask.NextFrame(initObjCts.Token);
-      setupLate();
+      SetupLate();
     }
 
-    protected virtual void build() { }
+    protected virtual void Build()
+    {
+#if UNITY_EDITOR
+      var projectSettings = EngineConfigScriptableObject.GetActiveInstance<ProjectSettings>();
+      if (projectSettings != null && !projectSettings.IsSerializedFieldCheckEnabled)
+        return;
 
-    protected virtual void setupEarly() { }
+      // Check for unset component serialized references
+      foreach (FieldInfo fieldInfo in GetType().GetFields(
+        BindingFlags.Instance | BindingFlags.Public |
+        BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
+      {
+        if (!fieldInfo.IsPublic && fieldInfo.GetCustomAttribute<SerializeField>() == null ||
+            fieldInfo.GetCustomAttribute<MayBeNullOnAwake>() != null ||
+            !fieldInfo.FieldType.IsSubclassOf(typeof(Component)))
+          continue;
 
-    protected virtual void setup() { }
+        if (fieldInfo.GetValue(this) == null)
+          Debug.LogError($"Serialized field <b>{fieldInfo.Name}</b> is null", this);
+      }
+#endif
+    }
 
-    protected virtual void setupLate() => isReady = true;
+    protected virtual void SetupEarly() { }
 
-    public virtual void updateEngine() { }
+    protected virtual void Setup() { }
 
-    protected virtual void destroy() { }
+    protected virtual void SetupLate() => isReady = true;
+
+    public virtual void UpdateEngine() { }
+
+    protected virtual void Destroy() { }
 
     /// <summary>
     /// Retrieve stamp from object with Type info and optionally frame info.
@@ -92,7 +118,7 @@ namespace PyricetiFramework
     /// </summary>
     /// <param name="showFrame"></param>
     /// <returns></returns>
-    public virtual string getStamp(bool showFrame = false)
+    public virtual string GetStamp(bool showFrame = false)
     {
       if (stamp == null)
         stamp = $" <color=#14E3C6>{GetType().Name}</color> | <b>{name}</b> |";
@@ -100,9 +126,9 @@ namespace PyricetiFramework
       return showFrame ? $" <color=#A851D4>{Time.frameCount}</color> {stamp}" : stamp;
     }
 
-    protected void registerAliveCts(CancellationTokenSource cts) => aliveCtsList.Add(cts);
+    protected void RegisterAliveCts(CancellationTokenSource cts) => aliveCtsList.Add(cts);
 
-    public void setIsEngineSubscriber(bool val = true) => isEngineSubscriber = val;
+    public void SetIsEngineSubscriber(bool val = true) => isEngineSubscriber = val;
   }
 
   public abstract class EngineObject<TController> : EngineObject where TController : EngineController
@@ -110,11 +136,11 @@ namespace PyricetiFramework
     // ReSharper disable once MemberCanBePrivate.Global
     protected TController controller;
 
-    protected override void setupEarly()
+    protected override void SetupEarly()
     {
-      base.setupEarly();
+      base.SetupEarly();
 
-      controller = ControllersProvider.getController<TController>();
+      controller = ControllersProvider.GetController<TController>();
       Assert.IsNotNull(controller);
     }
   }

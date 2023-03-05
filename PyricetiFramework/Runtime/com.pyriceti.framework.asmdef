@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "UnitySceneReference",
-        "UniTask"
+        "UniTask",
+        "Unity.Addressables",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

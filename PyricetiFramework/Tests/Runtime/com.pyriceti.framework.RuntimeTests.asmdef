@@ -4,7 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "com.pyriceti.framework"
+        "com.pyriceti.framework",
+        "UniTask",
+        "Unity.Addressables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

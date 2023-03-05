@@ -20,21 +20,21 @@ namespace PyricetiFramework.Editor
     #endregion
 
     [MenuItem("Edit/Force startup")]
-    private static void forceStartup()
+    private static void ForceStartup()
     {
       Debug.Log("Forcing startup again…");
-      startup();
+      Startup();
     }
 
 
-    private static EditorStartup _instance = null;
+    private static EditorStartup _instance;
 
     static EditorStartup()
     {
-      EditorApplication.update += onInit;
+      EditorApplication.update += OnInit;
     }
 
-    private static void onInit()
+    private static void OnInit()
     {
       if (!EditorPrefs.HasKey(editorPrefsEnableStartup) || !EditorPrefs.GetBool(editorPrefsEnableStartup))
         return;
@@ -43,25 +43,25 @@ namespace PyricetiFramework.Editor
         return;
 
       // ReSharper disable once DelegateSubtraction
-      EditorApplication.update -= onInit;
+      EditorApplication.update -= OnInit;
       
       _instance = FindObjectOfType<EditorStartup>();
       if (_instance != null)
         return;
       
       _instance = CreateInstance<EditorStartup>();
-      startup();
+      Startup();
     }
 
 
-    private static void update() { }
+    private static void Update() { }
 
-    private static void startup()
+    private static void Startup()
     {
       if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
         return;
 
-      EditorApplication.update += update;
+      EditorApplication.update += Update;
 
       Debug.Log("Launching Unity Editor for the \"superjeu\" project! :)");
 

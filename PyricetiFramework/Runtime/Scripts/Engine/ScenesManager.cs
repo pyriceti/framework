@@ -10,12 +10,12 @@ namespace PyricetiFramework
     // TODO: move in custom window
     public const string BaseScenesPath = "Scenes/";
 
-    public static async UniTask loadScenesAsync(IEnumerable<SceneReference> scenes) =>
-      await UniTask.WhenAll(scenes.Select(loadSceneAsync));
+    public static async UniTask LoadScenesAsync(IEnumerable<SceneReference> scenes) =>
+      await UniTask.WhenAll(scenes.Select(LoadSceneAsync));
 
-    public static async UniTask loadSceneAsync(string scenePath)
+    public static async UniTask LoadSceneAsync(string scenePath)
     {
-      if (isSceneLoaded(scenePath))
+      if (IsSceneLoaded(scenePath))
       {
         Debug.LogWarning($"Scene {scenePath} is already loaded");
         return;
@@ -24,14 +24,14 @@ namespace PyricetiFramework
       await SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Additive);
     }
 
-    private static async UniTask loadSceneAsync(SceneReference scene) => await loadSceneAsync(scene.ScenePath);
+    private static async UniTask LoadSceneAsync(SceneReference scene) => await LoadSceneAsync(scene.ScenePath);
 
     // TODO: move editable path in custom window
-    public static void loadEngineScene()
+    public static void LoadEngineScene()
     {
       // With "Assets/" prefix and ".unity" suffix
       var engineScenePath = "Assets/Scenes/Engine.unity";
-      if (isSceneLoaded(engineScenePath))
+      if (IsSceneLoaded(engineScenePath))
       {
         Debug.LogWarning($"Scene {engineScenePath} is already loaded");
         return;
@@ -41,11 +41,11 @@ namespace PyricetiFramework
       SceneManager.LoadScene("Scenes/Engine", LoadSceneMode.Additive);
     }
 
-    public static void unloadScene(Scene scene) => SceneManager.UnloadSceneAsync(scene);
+    public static void UnloadScene(Scene scene) => SceneManager.UnloadSceneAsync(scene);
 
-    private static bool isSceneLoaded(SceneReference scene) => isSceneLoaded(scene.ScenePath);
+    private static bool IsSceneLoaded(SceneReference scene) => IsSceneLoaded(scene.ScenePath);
 
-    private static bool isSceneLoaded(string scenePath)
+    private static bool IsSceneLoaded(string scenePath)
     {
       int countLoaded = SceneManager.sceneCount;
 

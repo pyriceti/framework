@@ -1,131 +1,74 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
+
 
 namespace PyricetiFramework.Editor
 {
-  public class ProjectDataWindow : EditorWindow
+  /// <summary>
+  /// TODO: add abstract sync/editable/resettable data window pattern w/ temp fields
+  /// to improve perfs w/ lots of data
+  /// TODO: Refactor w/ ProjectSettingsWindow
+  /// </summary>
+  public class ProjectDataWindow : BaseWindow
   {
-    private const string EditorPrefsPrefix = "pyricetiFramework-projectDataWindow-";
-  
-    #region Styles
+    private new const string EditorPrefsPrefix = BaseWindow.EditorPrefsPrefix + "projectDataWindow-";
 
-    private const int MainPadding = 8;
-
-    private GUIStyle cleanStyle;
-    private GUIStyle mainScopeStyle;
-    private GUIStyle mainScopePaddedStyle;
-    private GUIStyle mainScrollViewStyle;
-    private GUIStyle baseScrollViewStyle;
-    private GUIStyle headerStyle;
-    private GUIStyle foldoutStyle;
-    private GUIStyle cleanButtonStyle;
-
-    #endregion
-
-    private float originalLabelWidthValue;
-  
     private const string defaultProjectName = "SuperProject";
-  
-    private string projectName;
 
-    [MenuItem("PyricetiFramework/Project Data Window")]
-    private static void init()
-    {
-      var window = (ProjectDataWindow) GetWindow(typeof(ProjectDataWindow));
-      window.titleContent = new GUIContent("[PYR] Project Data Window");
-      window.Focus();
-      window.Repaint();
-      window.Show();
-    }
+    [MenuItem("PyricetiFramework/Project Data Window", false, 11)]
+    private static void Init() => InitImpl<ProjectDataWindow>("[PYR] Project Data Window");
 
-    private void OnEnable()
-    {
-      loadEditorPrefs();
-    }
-
-    private void OnDisable()
-    {
-      saveEditorPrefs();
-    }
-
-    private void OnGUI()
-    {
-      initStyles();
-
-      originalLabelWidthValue = EditorGUIUtility.labelWidth;
+    private string projectDataPath;
+    private ProjectData projectData;
+    private UnityEditor.Editor projectDataEditor;
     
-      using (new GUILayout.AreaScope(new Rect(0, 0, position.width, position.height), "", mainScopePaddedStyle))
+    protected override void OnEnable()
+    {
+      base.OnEnable();
+      
+      EngineConfigScriptableObject.ActiveInstanceUpdated += OnActiveInstanceUpdated;
+      
+      projectData = EngineConfigScriptableObject.GetActiveInstance<ProjectData>();
+      if (projectData == null)
+        return;
+   
+      projectDataEditor = UnityEditor.Editor.CreateEditor(projectData);
+    }
+
+    protected override void OnDisable()
+    {
+      base.OnDisable();
+      
+      EngineConfigScriptableObject.ActiveInstanceUpdated -= OnActiveInstanceUpdated;
+    }
+
+    private void OnActiveInstanceUpdated(Type type, EngineConfigScriptableObject instance)
+    {
+      if (type != typeof(ProjectData))
+        return;
+
+      DestroyImmediate(projectDataEditor);
+      projectData = (ProjectData) instance;
+      if (projectData == null)
+        return;
+
+      projectDataEditor = UnityEditor.Editor.CreateEditor(projectData);
+    }
+
+    protected override void DrawMainContent()
+    {
+      if (projectDataEditor != null && projectDataEditor.target != null)
       {
-        drawMainContent();
-        EditorGUIUtility.labelWidth = originalLabelWidthValue;
+        if (GUILayout.Button("Focus source", GUILayout.ExpandWidth(false)))
+          Selection.activeObject = projectData;
+        projectDataEditor.OnInspectorGUI();
       }
-    }
-
-    private void initStyles()
-    {
-      cleanStyle = new GUIStyle
+      else
       {
-        margin = new RectOffset(0, 0, 0, 0),
-        padding = new RectOffset(0, 0, 0, 0),
-        border = new RectOffset(0, 0, 0, 0),
-      };
-
-      mainScopeStyle = new GUIStyle(GUI.skin.window)
-      {
-        margin = new RectOffset(0, 0, 0, 0),
-        padding = new RectOffset(0, 0, 0, 0),
-        border = new RectOffset(0, 0, 0, 0),
-        normal = new GUIStyleState { background = null }
-      };
-
-      mainScopePaddedStyle = new GUIStyle(mainScopeStyle)
-      {
-        padding = new RectOffset(MainPadding, MainPadding, MainPadding, MainPadding)
-      };
-
-      mainScrollViewStyle = new GUIStyle(GUI.skin.scrollView)
-      {
-        margin = new RectOffset(0, 0, 0, 0),
-        padding = new RectOffset(MainPadding, MainPadding, MainPadding, MainPadding)
-      };
-    
-      baseScrollViewStyle = new GUIStyle(GUI.skin.scrollView)
-      {
-        margin = new RectOffset(0, 0, 0, 0),
-        padding = new RectOffset(0, 0, 0, 0),
-        border = new RectOffset(0, 0, 0, 0),
-      };
-
-      headerStyle = new GUIStyle(EditorStyles.boldLabel);
-
-      foldoutStyle = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
-
-      cleanButtonStyle = new GUIStyle(GUI.skin.button) { margin = new RectOffset(0, 0, 0, 0) };
-    }
-
- 
-    private void drawMainContent()
-    {
-      projectName = EditorGUILayout.TextField("Project Name", projectName);
-      if (GUILayout.Button("Save", cleanButtonStyle, GUILayout.ExpandWidth(false)))
-      {
-        ProjectData.ProjectName = projectName;
+        EditorGUILayout.LabelField(
+          $"Cannot build editor for projectData (path: {projectDataPath}), please make sure the project is correctly setup in PyricetiFramework/Project Setup Window");
       }
-    }
-
-    /// <summary>
-    /// This is called on 10fps, so it ensures GUI is repainted often without performance issues
-    /// </summary>
-    public void OnInspectorUpdate() => Repaint();
-
-    private void loadEditorPrefs()
-    {
-      projectName = EditorPrefs.GetString(EditorPrefsPrefix + nameof(projectName), defaultProjectName);
-    }
-
-    private void saveEditorPrefs()
-    {
-      EditorPrefs.SetString(EditorPrefsPrefix + nameof(projectName), projectName);
     }
   }
 }

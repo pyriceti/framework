@@ -9,25 +9,25 @@ namespace PyricetiFramework.Tests.Runtime
     [SerializeField] private bool fadeIn = false;
     [SerializeField] private bool fadeOut = false;
 
-    protected override void setup()
+    protected override void Setup()
     {
-      base.setup();
+      base.Setup();
       
-      EngineManager.subscribe(this);
+      EngineManager.Subscribe(this);
     }
 
-    public override void updateEngine()
+    public override void UpdateEngine()
     {
-      base.updateEngine();
+      base.UpdateEngine();
 
       if (fadeIn)
       {
-        show(true);
+        Show(true);
         fadeIn = false;
       }
       else if (fadeOut)
       {
-        hide(true);
+        Hide(true);
         fadeOut = false;
       }
     }

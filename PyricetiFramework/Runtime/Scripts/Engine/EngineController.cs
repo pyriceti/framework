@@ -4,14 +4,14 @@ namespace PyricetiFramework
 {
   public abstract class EngineController : EngineObject
   {
-    protected override void build()
+    protected override void Build()
     {
-      base.build();
+      base.Build();
 
-      ControllersProvider.registerController(this);
+      ControllersProvider.RegisterController(this);
     }
     
-    public static T getController<T>() where T : EngineController => ControllersProvider.getController<T>();
+    public static T GetController<T>() where T : EngineController => ControllersProvider.GetController<T>();
   }
 
   public abstract class EngineController<TSettings> : EngineController where TSettings : AbstractSettings

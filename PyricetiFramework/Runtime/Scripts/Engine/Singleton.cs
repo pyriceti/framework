@@ -76,7 +76,7 @@ namespace PyricetiFramework
   public abstract class Singleton : MonoBehaviour
   {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void initDomain()
+    private static void InitDomain()
     {
       Quitting = false;
     }
